@@ -1,6 +1,3 @@
-
-Certainly, here's an example README for your project that covers the setup of an AWS Lambda function, a Dead Letter Queue (DLQ), and the necessary configurations:
-
 # AWS Lambda Function with Dead Letter Queue (DLQ) Example
 
 This project demonstrates how to set up an AWS Lambda function to process events, configure a Dead Letter Queue (DLQ) for error handling, and use Terraform for infrastructure as code (IaC).
