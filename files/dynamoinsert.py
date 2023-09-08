@@ -1,31 +1,3 @@
-# import json
-# import boto3
-
-# dynamodb = boto3.client('dynamodb')
-
-# def lambda_handler(event, context):
-
-#     for record in event['Records']:
-#         message_body = json.loads(record['body'])
-
-#         # Extract data from the message, e.g., message_body['data']
-
-#         # Insert data into DynamoDB
-#         response = dynamodb.put_item(
-#             TableName='YourDynamoDBTableName',
-#             Item={
-#                 'PrimaryKey': {
-#                     'S': message_body['key']
-#                 },
-#                 'Attribute1': {
-#                     'S': message_body['value1']
-#                 },
-#                 'Attribute2': {
-#                     'N': str(message_body['value2'])
-#                 }
-#             }
-#         )
-
 import json
 import boto3
 import os
@@ -35,33 +7,37 @@ sqs = boto3.client('sqs')
 
 
 def handler(event, context):
-    print("Received event:")
     print("event arrived at: ", datetime.datetime.now().isoformat())
     print(event)
     for record in event['Records']:
         try:
             message_body = json.dumps(record['body'])
+            retry_count = int(record['messageAttributes'].get('retry_count', {'stringValue': '0'})['stringValue'])
             print('Message Body: ', message_body)
+            print('Retry Count: ' , retry_count )
             # Check the retry count or set it to 0 if it doesn't exist
-            retry_count = message_body.get('retry_count', 0)
-            print("RETRY COUNT: ", retry_count)
             if retry_count >= 3:
                 current_timestamp = datetime.datetime.now().isoformat()
                 print(f"Received event at {current_timestamp}: {json.dumps(event)}")
                  # Append the timestamp to the error message
-                error_message = f"{str(e)} (Occurred at {current_timestamp})"
+                error_message = "exceeded retry count"
                 raise Exception(error_message)
             else:
                 # Increment the retry count
                 retry_count += 1
                 print('Message Retry count set to: ', retry_count)
                 # Update the message with the new retry count
-                message_body['retry_count'] = retry_count
-
+                message_attributes = {
+                    'retry_count': {
+                        'DataType': 'String',
+                        'StringValue': str(retry_count)
+                    }
+                }
                 # Reinsert the message into the main queue
                 response = sqs.send_message(
                     QueueUrl=os.environ['MAIN_QUEUE'],
-                    MessageBody=json.dumps(message_body)
+                    MessageBody=message_body,
+                    MessageAttributes=message_attributes
                 )
                 print("Response:", response)
                 return {
