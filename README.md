@@ -19,7 +19,7 @@ This project demonstrates a retry handler for AWS Lambda using Amazon SQS (Simpl
 2. After number of retries is hit in step one the message will be sent to the dlq.  
 3. DLQ will automatically trigger the [retry function](./files/dynamoinsert.py).  This function:
     - Check if the message attribute `retry_count` exists if not it will create and set to zero
-4. if the `retry_count`` is less than `number_of_retries`:
+4. if the `retry_count` is less than `number_of_retries`:
     - increment `retry_count` by 1
     - configure [exponential backoff](./documentation/EXPONENTIAL.MD)
     - send back to the main queue
