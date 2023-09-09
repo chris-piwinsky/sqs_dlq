@@ -42,6 +42,20 @@ Before you begin, make sure you have the following prerequisites:
 * Run `terraform apply` to create the infrastructure on AWS.
 * When you are finished using the infrastructure, run `terraform destroy` to delete all the resources that Terraform created.
 
+## Testing through console
+
+## Testing through cli
+
+1. Run terraform
+2. Copy queue url from the terraform output
+3. Run CLI command
+
+```cli
+aws sqs send-message --queue-url <QUEUE_URL> --message-body "Your message content" --region <YOUR_REGION>
+
+```
+
+A lambda is created to attach to the main SQS queue
 ### References
 
 - [Using Amazon SQS dead-letter queues to replay messages](https://aws.amazon.com/blogs/compute/using-amazon-sqs-dead-letter-queues-to-replay-messages/)
