@@ -15,8 +15,6 @@ This project demonstrates a retry handler for AWS Lambda using Amazon SQS (Simpl
 
 ![Topology](./documentation/Topology.drawio.png)
 
-The project is composed of the following components:
-
 1. Message is sent from the main-queue to a lambda that is setup to [automatically fail](./files/autofail.py). This will repeat based on the [number_of_retries](./variables.tf) variable value.
 2. After number of retries is hit in step one the message will be sent to the dlq.  
 3. DLQ will automatically trigger the [retry function](./files/dynamoinsert.py).  This function:
