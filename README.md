@@ -17,15 +17,16 @@ This project demonstrates a retry handler for AWS Lambda using Amazon SQS (Simpl
 
 The project is composed of the following components:
 
-1. **AWS Lambda Function**: The Lambda function is triggered by the DLQ queue. It receives messages, tracks the retry count, and based on that value either:
-    - Send to the main queue using [exponential backoff](./documentation/EXPONENTIAL.MD) before sending back to the main queue.
-
-2. **SQS Queue**: The main SQS queue where messages are initially sent.
-
-3. **Dead Letter Queue (DLQ)**: An SQS queue designated as the DLQ. When messages fail after reaching the maximum retry count, they are sent to the DLQ.
-
-4. **DynamoDB Table**: A DynamoDB table is used to store records of messages that have exceeded the maximum retry count.
-
+1. Message is sent from the main-queue to a lambda that is setup to [automatically fail](./files/autofail.py). This will repeat based on the [number_of_retries](./variables.tf) variable value.
+2. After number of retries is hit in step one the message will be sent to the dlq.  
+3. DLQ will automatically trigger the [retry function](./files/dynamoinsert.py).  This function:
+    - Check if the message attribute `retry_count` exists if not it will create and set to zero
+4. if the `retry_count`` is less than `number_of_retries`:
+    - increment `retry_count` by 1
+    - configure [exponential backoff](./documentation/EXPONENTIAL.MD)
+    - send back to the main queue
+5. if the `retry_count` is greater than or equal to `number_of_retries`
+    - put the message into the dynamodb retry table for further investigation
 
 ## Prerequisites
 Before you begin, make sure you have the following prerequisites:
@@ -61,7 +62,6 @@ Before you begin, make sure you have the following prerequisites:
 
 ```cli
 aws sqs send-message --queue-url <QUEUE_URL> --message-body "Your message content" --region <YOUR_REGION>
-
 ```
 
 A lambda is created to attach to the main SQS queue
