@@ -62,7 +62,6 @@ Before you begin, make sure you have the following prerequisites:
 aws sqs send-message --queue-url <QUEUE_URL> --message-body "Your message content" --region <YOUR_REGION>
 ```
 
-A lambda is created to attach to the main SQS queue
 ### References
 
 - [Using Amazon SQS dead-letter queues to replay messages](https://aws.amazon.com/blogs/compute/using-amazon-sqs-dead-letter-queues-to-replay-messages/)
