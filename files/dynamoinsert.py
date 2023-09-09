@@ -2,6 +2,7 @@ import json
 import boto3
 import os
 import datetime
+import random
 
 dynamodb = boto3.client('dynamodb')
 sqs = boto3.client('sqs')
@@ -13,10 +14,17 @@ def handler(event, context):
     for record in event['Records']:
         try:
             message_body = record['body']
+            
+            # Check the retry count or set it to 0 if it doesn't exist
             retry_count = int(record['messageAttributes'].get('retry_count', {'stringValue': '0'})['stringValue'])
+            
             print('Message Body: ', message_body)
             print('Retry Count: ' , retry_count )
-            # Check the retry count or set it to 0 if it doesn't exist
+
+            # Calculate the delay based on retry count and apply jitter for randomness
+            delay_seconds = 2 ** retry_count + random.randint(0, 5)
+
+ 
             if retry_count >= int(os.environ['RETRY_COUNT']):
                 current_timestamp = datetime.datetime.now().isoformat()
                 print(f"Received event at {current_timestamp}: {json.dumps(event)}")
@@ -49,9 +57,12 @@ def handler(event, context):
                 response = sqs.send_message(
                     QueueUrl=os.environ['MAIN_QUEUE'],
                     MessageBody=message_body,
-                    MessageAttributes=message_attributes
+                    MessageAttributes=message_attributes,
+                    DelaySeconds=delay_seconds
                 )
-                print("Response:", response)
+                
+                print(f"Response: {response}, Delay Seconds: {delay_seconds}")
+
                 return {
                     "statusCode": 200,
                     "body": json.dumps(response)
