@@ -28,7 +28,6 @@ def handler(event, context):
             if retry_count >= int(os.environ['RETRY_COUNT']):
                 current_timestamp = datetime.datetime.now().isoformat()
                 print(f"Received event at {current_timestamp}: {json.dumps(event)}")
-                 # Append the timestamp to the error message
                 
                 response = dynamodb.put_item(
                     TableName=os.environ['DYNAMODB_TABLE'],
@@ -60,7 +59,7 @@ def handler(event, context):
                     MessageAttributes=message_attributes,
                     DelaySeconds=delay_seconds
                 )
-                
+
                 print(f"Response: {response}, Delay Seconds: {delay_seconds}")
 
                 return {

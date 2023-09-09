@@ -13,6 +13,8 @@ This project demonstrates a retry handler for AWS Lambda using Amazon SQS (Simpl
 
 ## Overview
 
+![Topology](./documentation/Topology.drawio.png)
+
 The project is composed of the following components:
 
 1. **AWS Lambda Function**: The Lambda function is triggered by the DLQ queue. It receives messages, tracks the retry count, and based on that value either:
@@ -44,9 +46,16 @@ Before you begin, make sure you have the following prerequisites:
 
 ## Testing through console
 
+1. Run [Infrastructure Setup](#infrastructure-setup)
+2. Log into [AWS Console](https://aws.amazon.com/console/)
+3. Navigate to SQS
+    - select `main-queue`
+    - select `Send and receive messages`
+    - type in message you want to send and click `send message`
+
 ## Testing through cli
 
-1. Run terraform
+1. Run [Infrastructure Setup](#infrastructure-setup)
 2. Copy queue url from the terraform output
 3. Run CLI command
 
