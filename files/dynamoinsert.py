@@ -3,6 +3,7 @@ import boto3
 import os
 import datetime
 
+dynamodb = boto3.client('dynamodb')
 sqs = boto3.client('sqs')
 
 
@@ -11,17 +12,28 @@ def handler(event, context):
     print(event)
     for record in event['Records']:
         try:
-            message_body = json.dumps(record['body'])
+            message_body = record['body']
             retry_count = int(record['messageAttributes'].get('retry_count', {'stringValue': '0'})['stringValue'])
             print('Message Body: ', message_body)
             print('Retry Count: ' , retry_count )
             # Check the retry count or set it to 0 if it doesn't exist
-            if retry_count >= 3:
+            if retry_count >= int(os.environ['RETRY_COUNT']):
                 current_timestamp = datetime.datetime.now().isoformat()
                 print(f"Received event at {current_timestamp}: {json.dumps(event)}")
                  # Append the timestamp to the error message
-                error_message = "exceeded retry count"
-                raise Exception(error_message)
+                
+                response = dynamodb.put_item(
+                    TableName=os.environ['DYNAMODB_TABLE'],
+                    Item={
+                        'id': {'S': str(datetime.datetime.now())},  # Unique ID
+                        'message_body': {'S': message_body},
+                        'timestamp': {'S': current_timestamp},
+                        'retry_count': {'N': str(retry_count)}
+                    })
+                return {
+                    "statusCode": 200,
+                    "body": json.dumps(response)
+                }
             else:
                 # Increment the retry count
                 retry_count += 1

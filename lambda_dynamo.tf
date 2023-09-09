@@ -12,9 +12,11 @@ resource "aws_lambda_function" "dynamo_insert" {
   runtime          = "python3.8"
   source_code_hash = filebase64sha256(data.archive_file.dynamo_insert.output_path)
 
-    environment {
+  environment {
     variables = {
-      MAIN_QUEUE = aws_sqs_queue.main_queue.id
+      MAIN_QUEUE     = aws_sqs_queue.main_queue.id
+      DYNAMODB_TABLE = aws_dynamodb_table.retry_table.id
+      RETRY_COUNT    = var.number_of_retries
     }
   }
 }
@@ -69,7 +71,7 @@ resource "aws_iam_role_policy_attachment" "sqs_execution" {
 
 resource "aws_cloudwatch_log_group" "lambda_log_group" {
   name              = "/aws/lambda/${aws_lambda_function.dynamo_insert.function_name}" # Adjust the log group name
-  retention_in_days = 7                                                                     # Adjust the retention period in days as needed
+  retention_in_days = 7                                                                # Adjust the retention period in days as needed
 }
 
 
